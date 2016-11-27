@@ -54,18 +54,22 @@ var ioModule = require('socket.io')
  , exphbs  = require('express3-handlebars')
  , http = require('http')
  , path = require('path')
+ , logger = require('morgan')
+ , bodyParser = require('body-parser')
+ , methodOverride = require('method-override')
+ , errorHandler = require('errorhandler')
 
 loadApp = function(){
 	var app = express();
 	// all environments
-	app.configure(function () {
+		app.use(lessMiddleware(__dirname + '/../public'));
+		/*
 		app.use(lessMiddleware({
 			src: __dirname + '/../public',
 			compress: true
 		}));
-
+		*/
 		app.use(express.static(__dirname + '/../public'));
-	});
 
 	app.engine('html', exphbs({defaultLayout: 'main', extname: '.html'}));
 	app.set('view engine', 'html');
@@ -73,17 +77,16 @@ loadApp = function(){
 	app.get('/', function (req, res) {
 			res.render('index');
 	});
-
-	app.use(express.favicon());
-	app.use(express.logger('dev'));
-	app.use(express.json());
-	app.use(express.urlencoded());
-	app.use(express.methodOverride());
-	app.use(app.router);
+	app.use(logger('dev'));
+ 	app.use(bodyParser.json());
+	app.use(bodyParser.urlencoded({
+    		extended: true
+	}));
+	app.use(methodOverride());
 	app.use(express.static(path.join(__dirname, '../public')));
 	// development only
 	if ('development' == app.get('env')) {
-		app.use(express.errorHandler());
+		app.use(errorHandler());
 	}
 	return app
 }
